@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -v \"^$\")",
+      "PowerShell([System.IO.File]::Move\\(\"d:\\\\WEB DEV\\\\habib\\\\public\\\\assets\\\\into_potriat.png\", \"d:\\\\WEB DEV\\\\habib\\\\public\\\\assets\\\\portraits\\\\hero-portraits.png\"\\); Write-Host \"Moved into_potriat.png -> portraits/hero-portraits.png\")",
+      "PowerShell(New-Item -ItemType Directory -Path \"d:\\\\WEB DEV\\\\habib\\\\src\\\\app\\\\color-test\" -Force)",
+      "PowerShell(Get-Content \"C:\\\\Users\\\\ADMINI~1\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\d--WEB-DEV-habib\\\\d6cf1785-c505-4083-b8e5-9a64b9761aec\\\\tasks\\\\b0i405izc.output\" -Wait -Tail 10)",
+      "PowerShell(Set-Location \"d:\\\\WEB DEV\\\\habib\"; $job = Start-Job { Set-Location \"d:\\\\WEB DEV\\\\habib\"; npm run dev 2>&1 }; Start-Sleep 10; Receive-Job $job; Stop-Job $job; Remove-Job $job)"
+    ]
+  }
+}
