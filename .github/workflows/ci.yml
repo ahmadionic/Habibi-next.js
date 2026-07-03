@@ -29,9 +29,6 @@ jobs:
         continue-on-error: true
         run: npm run lint
 
-      - name: Build Habibi Application
-        run: npm run build
-
       - name: Build Docker Image
         run: docker build -t nextjs-app:latest .
 
