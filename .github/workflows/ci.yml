@@ -1,45 +1,72 @@
-name: Habibi CI Pipeline
+name: Habibi-next.js CI/CD Pipeline
 
 on:
   push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
-  ci:
+  install:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
+      - run: npm install
 
-      - name: Install Dependencies
-        run: npm install
-
-      - name: Run Lint
+  lint:
+    runs-on: ubuntu-latest
+    needs: install
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - run: npm run lint
         continue-on-error: true
-        run: npm run lint
 
-      - name: Build Docker Image
-        run: docker build -t nextjs-app:latest .
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t nextjs-app:latest .
 
-      - name: Scan Docker Image with Trivy
-        uses: aquasecurity/trivy-action@master
+  trivy-scan:
+    runs-on: ubuntu-latest
+    needs: docker-build
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t nextjs-app:latest .
+      - uses: aquasecurity/trivy-action@master
         with:
           image-ref: nextjs-app:latest
           format: table
           exit-code: 0
-          ignore-unfixed: true
-          severity: CRITICAL,HIGH
+          severity: HIGH,CRITICAL
 
-      - name: Pipeline Completed
-        run: echo "CI Pipeline executed successfully."
+  push-to-ecr:
+    runs-on: ubuntu-latest
+    needs: trivy-scan
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - run: docker build -t nextjs-app:latest .
+
+      - run: |
+          docker tag nextjs-app:latest \
+          ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:latest
+
+      - run: |
+          docker push \
+          ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:latest
