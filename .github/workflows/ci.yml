@@ -91,6 +91,6 @@ jobs:
       - name: Force ECS deployment
         run: |
           aws ecs update-service \
-            --cluster habibi-cluster \
+            --cluster habibicluster \
             --service habibi-service \
             --force-new-deployment
